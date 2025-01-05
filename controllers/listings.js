@@ -25,18 +25,36 @@ module.exports.showListing = async(req,res) => {
 
 };
 
-module.exports.createListings=async(req, res , next) => {
-
-  let url = req.file.path;
+module.exports.createListings = async (req, res, next) => {
+  try {
+    let url = req.file.path;
     let filename = req.file.filename;
 
+    // Create a new listing instance from the data in req.body.listing
     const newListing = new Listing(req.body.listing);
-    newListing.owner=req.user._id;
-    newListing.image={url,filename};
-    await newListing.save();
+
+    // Set the owner as the logged-in user
+    newListing.owner = req.user._id;
+
+    // Set the image object with the file data
+    newListing.image = { url, filename };
+
+    // Save the listing to the database
+    let savedListing = await newListing.save();
+
+    // Log the saved listing (for debugging purposes)
+    console.log(savedListing);
+
+    // Set the success flash message
     req.flash("success", "New Listing created!");
+
+    // Redirect to /listings page
     res.redirect("/listings");
+  } catch (e) {
+    next(e); // If an error occurs, pass it to the next middleware (error handler)
   }
+};
+
 
   module.exports.renderEditform= async (req,res) => {
     let {id} = req.params;
